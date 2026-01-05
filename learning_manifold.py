@@ -230,10 +230,10 @@ class LearningManifold(Manifold):
     def show_learning_progress(self):
         """Display learning progress and statistics"""
         print("\n" + "="*60)
-        print(f"🧠 LEARNING MANIFOLD: {self.name}")
+        print(f"LEARNING MANIFOLD: {self.name}")
         print("="*60)
         
-        print("\n📞 Operation Call Statistics:")
+        print("\n Operation Call Statistics:")
         if self.operation_calls:
             for op, count in sorted(self.operation_calls.items(), key=lambda x: x[1], reverse=True):
                 print(f"  {op}: {count} calls")
