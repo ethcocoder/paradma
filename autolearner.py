@@ -204,6 +204,18 @@ class PatternAnalyzer:
         return native_matmul
     
     @staticmethod
+    def analyze_subtract(observations: list) -> t.Callable:
+        """Learn subtraction by analyzing patterns"""
+        def native_subtract(a, b):
+            """Learned native subtraction"""
+            if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
+                # Element-wise subtraction
+                return [x - y for x, y in zip(a, b)]
+            return a - b
+        
+        return native_subtract
+
+    @staticmethod
     def analyze_sqrt(observations: list) -> t.Callable:
         """Learn square root using Newton's method"""
         def native_sqrt(x):
@@ -251,6 +263,7 @@ class AutoLearner:
         self.learning_strategies = {
             'add': self.analyzer.analyze_addition,
             'multiply': self.analyzer.analyze_multiply,
+            'subtract': self.analyzer.analyze_subtract,
             'mean': self.analyzer.analyze_mean,
             'dot': self.analyzer.analyze_dot,
             'matmul': self.analyzer.analyze_matmul,
@@ -409,7 +422,7 @@ class AutoLearner:
         """Check if results match (with floating point tolerance)"""
         try:
             # Handle NumPy arrays
-            if hasattr(expected, '____iter__') and not isinstance(expected, str):
+            if hasattr(expected, '__iter__') and not isinstance(expected, str):
                 if not hasattr(actual, '__iter__'):
                     return False
                 

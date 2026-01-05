@@ -111,8 +111,7 @@ class LearningManifold(Manifold):
         self._track_call("subtract")
         val_a, val_b = self._extract_values(a, b)
         
-        # For now, use native Python (can add to AutoLearner later)
-        result = val_a - val_b
+        result = self.autolearner.execute("subtract", val_a, val_b)
         return Axiom(result, manifold=self)
     
     def _learning_divide(self, a, b):
