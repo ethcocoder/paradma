@@ -6,7 +6,11 @@ def _get_learner():
         from .autolearner import get_autolearner
         return get_autolearner()
     except ImportError:
-        return None
+        try:
+            from autolearner import get_autolearner
+            return get_autolearner()
+        except ImportError:
+            return None
 
 class Manifold:
     """
