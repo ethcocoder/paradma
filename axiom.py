@@ -1,5 +1,8 @@
 import typing as t
-from .manifold import Manifold, euclidean
+try:
+    from .manifold import Manifold, euclidean
+except ImportError:
+    from manifold import Manifold, euclidean
 
 class Axiom:
     """

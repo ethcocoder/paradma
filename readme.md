@@ -5,50 +5,6 @@
 > "Don't just calculate. Simulate."
 
 ## 🚀 Key Features
-
-*   **🌌 Manifold-Agnostic Philosophy**: Switch between Euclidean, Relativistic, and Hilbert spaces instantly.
-*   **🌡️ Entropy & Thermodynamics**: Data has "Temperature." Unused data automatically cools down and compresses itself (Holographic Storage), saving RAM.
-*   **🔮 Superposition & Chaos**: Native support for undetermined values (lambdas) that collapse only when observed.
-*   **💎 Dual-Core Architecture**: Seamlessly transition between "Gas" (Living Axioms) and "Solid" (High-speed NumPy Buffers).
-*   **🛡️ Data Pinning (Safety)**: Protect critical data (missions, identities) from Entropy. These Axioms never cool down.
-*   **⚡ JIT Hyper-Engine**: Decorate your physics laws with `@jit_law` to compile them into machine code for C++ level speed.
-*   **🕸️ ParadoxLF Bridge**: Built-in "Spooky Action" allows Axioms to be entangled across different systems.
-
----
-
-## ⚖️ Performance & Limits (RESOLVED)
-With the **Dual-Mode Phasing Engine**, the previous limits on memory and speed have been significantly addressed:
-*   **Memory**: High-density data is compressed into raw C-buffers using `.condense()`.
-*   **Speed**: High-speed math is executed on direct NumPy buffers with JIT acceleration.
-*   See [LIMITATIONS.md](./LIMITATIONS.md) for the full technical performance analysis.
-
----
-
-## 🆚 Paradma vs. NumPy
-
-A commonly asked question is: *"Why use Paradma when I have NumPy?"*
-
-| Feature | **NumPy** (The Calculator) | **Paradma** (The Universe) |
-| :--- | :--- | :--- |
-| **Philosophy** | Static, Grid-based Computing | Living, Agentic Simulation |
-| **Memory Model** | **Static Dense Arrays**. Allocates RAM immediately. | **Dual-Phase**. Toggle between **Holographic (Gas)** and **Buffer-backed (Solid)**. |
-| **Data Lifecycle** | None. Data stays in RAM until deleted. | **Entropy**. Stale data auto-compresses; **Pinned** data stays hot. |
-| **Physics** | Hardcoded Linear Algebra | **Dynamic Laws**. Gravity, Relativity, and Autonomous Logic. |
-| **Creation Speed** | Slower (allocates memory block) | **2.3x Faster** (Lightweight Axiom wrapping) |
-| **Execution** | Constant C/Fortran Speed | **Adaptive**. **Solid Phase** matches NumPy speed; **Gas Phase** maximizes intelligence. |
-
-### When to use what?
-*   **Use NumPy** for brute-force number crunching (e.g., training a ResNet from scratch).
-*   **Use Paradma** for Simulations, Financial Modeling, AI Memory Systems, and complex Event-Driven Architectures.
-
----
-
-## 📦 Installation
-
-```bash
-git clone https://github.com/your-repo/paradma.git
-cd paradma
-pip install -r requirements.txt
 ```
 
 ## ⚡ Quick Start

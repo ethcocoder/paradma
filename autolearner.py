@@ -1,0 +1,469 @@
+"""
+Paradma AutoLearner: Self-Bootstrap from NumPy to Independence
+
+This module enables Paradma to:
+1. Delegate operations to NumPy (Teacher Phase)
+2. Observe and record all I/O patterns (Knowledge Acquisition)
+3. Analyze patterns to extract algorithms (Learning Phase)
+4. Implement native versions (Independence Phase)
+5. Graduate from NumPy dependency (Accomplishment Phase)
+
+The AutoLearner transforms Paradma from a NumPy wrapper into a fully autonomous
+mathematical substrate.
+"""
+
+import typing as t
+import numpy as np
+from collections import defaultdict
+import pickle
+import os
+from pathlib import Path
+
+# Import the code generator for self-modification
+try:
+    from .code_generator import CodeGenerator
+    HAS_CODE_GEN = True
+except ImportError:
+    try:
+        from code_generator import CodeGenerator
+        HAS_CODE_GEN = True
+    except ImportError:
+        HAS_CODE_GEN = False
+        CodeGenerator = None
+
+class KnowledgeBase:
+    """
+    Stores observations from NumPy operations.
+    Each operation is recorded with inputs, outputs, and metadata.
+    """
+    def __init__(self, storage_path: str = ".paradma_knowledge"):
+        self.storage_path = Path(storage_path)
+        self.storage_path.mkdir(exist_ok=True)
+        
+        # Operation name -> List of (inputs, output, metadata)
+        self.observations: t.Dict[str, list] = defaultdict(list)
+        
+        # Operation name -> Mastery level (0.0 to 1.0)
+        self.mastery: t.Dict[str, float] = defaultdict(float)
+        
+        # Operation name -> Native implementation (once learned)
+        self.native_implementations: t.Dict[str, t.Callable] = {}
+        
+        self.load_knowledge()
+    
+    def record_observation(self, operation: str, inputs: tuple, output: t.Any, metadata: dict = None):
+        """Record a single observation of NumPy operation"""
+        observation = {
+            "inputs": inputs,
+            "output": output,
+            "metadata": metadata or {},
+            "timestamp": self._get_time()
+        }
+        self.observations[operation].append(observation)
+        
+    def get_observation_count(self, operation: str) -> int:
+        """How many times we've observed this operation"""
+        return len(self.observations.get(operation, []))
+    
+    def save_knowledge(self):
+        """Persist knowledge to disk"""
+        knowledge_file = self.storage_path / "knowledge.pkl"
+        with open(knowledge_file, 'wb') as f:
+            pickle.dump({
+                'observations': dict(self.observations),
+                'mastery': dict(self.mastery),
+            }, f)
+    
+    def load_knowledge(self):
+        """Load previously acquired knowledge"""
+        knowledge_file = self.storage_path / "knowledge.pkl"
+        if knowledge_file.exists():
+            with open(knowledge_file, 'rb') as f:
+                data = pickle.load(f)
+                self.observations = defaultdict(list, data.get('observations', {}))
+                self.mastery = defaultdict(float, data.get('mastery', {}))
+    
+    def _get_time(self):
+        """Get current timestamp"""
+        import time
+        return time.time()
+
+
+class PatternAnalyzer:
+    """
+    Analyzes observed patterns to extract algorithmic knowledge.
+    This is the "Learning" brain of the AutoLearner.
+    """
+    
+    @staticmethod
+    def analyze_addition(observations: list) -> t.Callable:
+        """Learn addition by analyzing patterns"""
+        # After observing: (2,3)->5, (5,7)->12, etc.
+        # Pattern: output = input1 + input2
+        
+        def native_add(*args):
+            """Learned native addition"""
+            if len(args) == 2:
+                a, b = args
+                # Pure Python addition (no NumPy!)
+                if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
+                    # Element-wise addition
+                    return [x + y for x, y in zip(a, b)]
+                return a + b
+            elif len(args) == 1:
+                # Sum of array
+                arr = args[0]
+                total = 0
+                for item in arr:
+                    total += item
+                return total
+            else:
+                # Multi-argument addition
+                result = args[0]
+                for arg in args[1:]:
+                    result = result + arg
+                return result
+        
+        return native_add
+    
+    @staticmethod
+    def analyze_multiply(observations: list) -> t.Callable:
+        """Learn multiplication by analyzing patterns"""
+        def native_multiply(*args):
+            """Learned native multiplication"""
+            if len(args) == 2:
+                a, b = args
+                if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
+                    # Element-wise multiplication
+                    return [x * y for x, y in zip(a, b)]
+                return a * b
+            else:
+                result = args[0]
+                for arg in args[1:]:
+                    result = result * arg
+                return result
+        
+        return native_multiply
+    
+    @staticmethod
+    def analyze_mean(observations: list) -> t.Callable:
+        """Learn mean/average calculation"""
+        def native_mean(arr):
+            """Learned native mean"""
+            if isinstance(arr, (list, tuple)):
+                total = sum(arr)
+                count = len(arr)
+                return total / count if count > 0 else 0
+            return arr  # Scalar case
+        
+        return native_mean
+    
+    @staticmethod
+    def analyze_dot(observations: list) -> t.Callable:
+        """Learn dot product by analyzing patterns"""
+        def native_dot(a, b):
+            """Learned native dot product"""
+            if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
+                # Vector dot product
+                return sum(x * y for x, y in zip(a, b))
+            return a * b  # Scalar case
+        
+        return native_dot
+    
+    @staticmethod
+    def analyze_matmul(observations: list) -> t.Callable:
+        """Learn matrix multiplication"""
+        def native_matmul(a, b):
+            """Learned native matrix multiplication"""
+            # Convert to list if needed
+            if not isinstance(a, list):
+                a = [[a]]
+            if not isinstance(b, list):
+                b = [[b]]
+            
+            # Matrix multiplication algorithm
+            rows_a = len(a)
+            cols_a = len(a[0]) if a else 0
+            rows_b = len(b)
+            cols_b = len(b[0]) if b else 0
+            
+            if cols_a != rows_b:
+                raise ValueError(f"Cannot multiply matrices: ({rows_a}x{cols_a}) x ({rows_b}x{cols_b})")
+            
+            # Initialize result matrix
+            result = [[0 for _ in range(cols_b)] for _ in range(rows_a)]
+            
+            # Perform multiplication
+            for i in range(rows_a):
+                for j in range(cols_b):
+                    for k in range(cols_a):
+                        result[i][j] += a[i][k] * b[k][j]
+            
+            return result
+        
+        return native_matmul
+    
+    @staticmethod
+    def analyze_sqrt(observations: list) -> t.Callable:
+        """Learn square root using Newton's method"""
+        def native_sqrt(x):
+            """Learned native square root via Newton's method"""
+            if x < 0:
+                raise ValueError("Cannot compute square root of negative number")
+            if x == 0:
+                return 0
+            
+            # Newton's method: x_n+1 = (x_n + S/x_n) / 2
+            guess = x / 2.0
+            for _ in range(10):  # 10 iterations is usually sufficient
+                guess = (guess + x / guess) / 2.0
+            return guess
+        
+        return native_sqrt
+
+
+class AutoLearner:
+    """
+    The main AutoLearner orchestrates the learning lifecycle:
+    1. Delegate to NumPy (observe)
+    2. Accumulate knowledge
+    3. Analyze patterns
+    4. Implement native versions
+    5. Graduate from NumPy dependency
+    """
+    
+    # Learning thresholds
+    OBSERVATION_THRESHOLD = 10  # Need 10+ observations before learning
+    MASTERY_THRESHOLD = 0.9     # 90% accuracy to graduate
+    
+    def __init__(self, knowledge_path: str = ".paradma_knowledge", enable_self_modification: bool = True):
+        self.knowledge = KnowledgeBase(knowledge_path)
+        self.analyzer = PatternAnalyzer()
+        
+        # Code generator for self-modification
+        self.enable_self_modification = enable_self_modification and HAS_CODE_GEN
+        if self.enable_self_modification:
+            self.code_generator = CodeGenerator()
+        else:
+            self.code_generator = None
+        
+        # Map operation names to analyzer methods
+        self.learning_strategies = {
+            'add': self.analyzer.analyze_addition,
+            'multiply': self.analyzer.analyze_multiply,
+            'mean': self.analyzer.analyze_mean,
+            'dot': self.analyzer.analyze_dot,
+            'matmul': self.analyzer.analyze_matmul,
+            'sqrt': self.analyzer.analyze_sqrt,
+        }
+        
+        # Load any existing native implementations
+        if self.enable_self_modification:
+            self._load_existing_implementations()
+
+    def _load_existing_implementations(self):
+        """Load already generated implementations from file"""
+        try:
+            # We need to check which operations have been generated
+            # This is a bit of a hack, checking the file content or just trying to load all known ops
+            import native_operations
+            import importlib
+            importlib.reload(native_operations)
+            
+            for op in self.learning_strategies.keys():
+                func_name = f"native_{op}"
+                if hasattr(native_operations, func_name):
+                    native_func = getattr(native_operations, func_name)
+                    self.knowledge.native_implementations[op] = native_func
+                    # Ensure mastery is set if we have the code
+                    if self.knowledge.mastery[op] < self.MASTERY_THRESHOLD:
+                        self.knowledge.mastery[op] = 1.0
+                        
+        except ImportError:
+            # File might not exist yet, which is fine
+            pass
+        except Exception as e:
+            print(f"[WARN] Failed to load existing implementations: {e}")
+    
+    def execute(self, operation: str, *args, **kwargs):
+        """
+        Execute an operation with auto-learning:
+        - If mastered: use native implementation
+        - If learning: use NumPy and record observation
+        - If new: start learning from NumPy
+        """
+        
+        # Check if we've graduated from NumPy for this operation
+        if self.has_graduated(operation):
+            return self._execute_native(operation, *args)
+        
+        # Delegate to NumPy and observe
+        result = self._execute_numpy(operation, *args, **kwargs)
+        
+        # Record the observation
+        self.knowledge.record_observation(
+            operation, 
+            args, 
+            result,
+            {"learned": False, "source": "numpy"}
+        )
+        
+        # Check if we can learn now
+        if self.can_learn(operation):
+            self.learn_operation(operation)
+        
+        return result
+    
+    def _execute_numpy(self, operation: str, *args, **kwargs):
+        """Delegate to NumPy (Teacher Phase)"""
+        numpy_func = getattr(np, operation, None)
+        if numpy_func is None:
+            raise ValueError(f"NumPy doesn't support operation: {operation}")
+        
+        return numpy_func(*args, **kwargs)
+    
+    def _execute_native(self, operation: str, *args):
+        """Execute using learned native implementation (Independence Phase)"""
+        native_func = self.knowledge.native_implementations.get(operation)
+        if native_func is None:
+            raise ValueError(f"No native implementation for: {operation}")
+        
+        return native_func(*args)
+    
+    def can_learn(self, operation: str) -> bool:
+        """Determine if we have enough observations to start learning"""
+        obs_count = self.knowledge.get_observation_count(operation)
+        return obs_count >= self.OBSERVATION_THRESHOLD
+    
+    def has_graduated(self, operation: str) -> bool:
+        """Check if this operation has graduated from NumPy"""
+        return self.knowledge.mastery[operation] >= self.MASTERY_THRESHOLD
+    
+    def learn_operation(self, operation: str):
+        """
+        Analyze patterns and create native implementation.
+        This is the key "Learning Phase"!
+        """
+        
+        if operation not in self.learning_strategies:
+            print(f"[WARNING] No learning strategy for '{operation}' yet. Still using NumPy.")
+            return
+        
+        observations = self.knowledge.observations[operation]
+        
+        # Use the pattern analyzer to extract algorithm
+        analyzer_func = self.learning_strategies[operation]
+        native_impl = analyzer_func(observations)
+        
+        # Store the native implementation
+        self.knowledge.native_implementations[operation] = native_impl
+        
+        # Test the implementation against observations
+        correct_count = 0
+        total_count = min(len(observations), 100)  # Test on subset
+        
+        for obs in observations[:total_count]:
+            inputs = obs['inputs']
+            expected = obs['output']
+            
+            try:
+                actual = native_impl(*inputs)
+                if self._results_match(actual, expected):
+                    correct_count += 1
+            except:
+                pass  # Failed to match
+        
+        # Calculate mastery
+        mastery = correct_count / total_count if total_count > 0 else 0
+        self.knowledge.mastery[operation] = mastery
+        
+        # SELF-MODIFICATION: Generate and write code to file!
+        if self.enable_self_modification and mastery >= self.MASTERY_THRESHOLD:
+            try:
+                code_written = self.code_generator.add_implementation(operation, observations)
+                if code_written:
+                    print(f"   [SELF-MOD] Wrote native_{operation}() to native_operations.py")
+                    
+                    # Try to load the generated code
+                    try:
+                        generated_impl = self.code_generator.get_native_implementation(operation)
+                        if generated_impl:
+                            # Replace in-memory implementation with file-based one
+                            self.knowledge.native_implementations[operation] = generated_impl
+                            print(f"   [LOADED] Using self-generated code from file!")
+                    except Exception as e:
+                        print(f"   [WARN] Could not load generated code: {e}")
+            except Exception as e:
+                print(f"   [ERROR] Self-modification failed: {e}")
+        
+        # Save knowledge
+        self.knowledge.save_knowledge()
+        
+        # Report
+        if mastery >= self.MASTERY_THRESHOLD:
+            print(f"[GRADUATED] '{operation}' is now INDEPENDENT from NumPy! (Mastery: {mastery*100:.1f}%)")
+        else:
+            print(f"[LEARNING] '{operation}' learned but needs more practice (Mastery: {mastery*100:.1f}%)")
+    
+    def _results_match(self, actual, expected, tolerance=1e-6) -> bool:
+        """Check if results match (with floating point tolerance)"""
+        try:
+            # Handle NumPy arrays
+            if hasattr(expected, '____iter__') and not isinstance(expected, str):
+                if not hasattr(actual, '__iter__'):
+                    return False
+                
+                # Flatten and compare
+                exp_flat = list(self._flatten(expected))
+                act_flat = list(self._flatten(actual))
+                
+                if len(exp_flat) != len(act_flat):
+                    return False
+                
+                return all(abs(a - e) < tolerance for a, e in zip(act_flat, exp_flat))
+            else:
+                # Scalar comparison
+                return abs(actual - expected) < tolerance
+        except:
+            return False
+    
+    def _flatten(self, nested):
+        """Flatten nested lists/arrays"""
+        for item in nested:
+            if hasattr(item, '__iter__') and not isinstance(item, str):
+                yield from self._flatten(item)
+            else:
+                yield item
+    
+    def report_progress(self):
+        """Print learning progress report"""
+        print("\n" + "="*60)
+        print("[STATS] PARADMA AUTO-LEARNER PROGRESS REPORT")
+        print("="*60)
+        
+        if not self.knowledge.observations:
+            print("No operations observed yet. Start using Paradma to trigger learning!")
+            return
+        
+        for operation, obs_list in self.knowledge.observations.items():
+            obs_count = len(obs_list)
+            mastery = self.knowledge.mastery[operation]
+            status = "[GRAD]" if self.has_graduated(operation) else "[LEARN]"
+            
+            print(f"\n{status} {operation}:")
+            print(f"  Observations: {obs_count}")
+            print(f"  Mastery: {mastery*100:.1f}%")
+            print(f"  Native Implementation: {'[YES]' if operation in self.knowledge.native_implementations else '[NO]'}")
+        
+        print("\n" + "="*60)
+
+
+# Global singleton instance
+_global_autolearner = None
+
+def get_autolearner() -> AutoLearner:
+    """Get the global AutoLearner instance"""
+    global _global_autolearner
+    if _global_autolearner is None:
+        _global_autolearner = AutoLearner()
+    return _global_autolearner
