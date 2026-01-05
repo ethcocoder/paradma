@@ -62,11 +62,13 @@ class LearningManifold(Manifold):
         self.register_law("cos", self._learning_cos)
     
     def _extract_values(self, *args):
-        """Extract raw values from Axioms"""
+        """Extract raw values from Axioms or Framework Tensors"""
         values = []
         for arg in args:
-            if isinstance(arg, Axiom):
+            if hasattr(arg, 'value'): # Paradma Axiom
                 values.append(arg.value)
+            elif hasattr(arg, 'data'): # Framework Tensor
+                values.append(arg.data)
             else:
                 values.append(arg)
         return values
@@ -181,6 +183,13 @@ class LearningManifold(Manifold):
         val_a, val_b = self._extract_values(a, b)
         
         result = self.autolearner.execute("matmul", val_a, val_b)
+        
+        # If input was a framework Tensor, return a framework Tensor
+        # (We check for .data to avoid importing the Tensor class here)
+        if hasattr(a, 'data') or hasattr(b, 'data'):
+            from modules.framework.tensor import Tensor
+            return Tensor(result)
+            
         return Axiom(result, manifold=self)
     
     # ============================================

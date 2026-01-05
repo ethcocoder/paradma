@@ -29,13 +29,14 @@ class Axiom:
         'Law Stealing': If a method isn't found on the Axiom, 
         try to fetch it from its Manifold as a Law.
         """
-        try:
-            # We return a partial application or a wrapper that calls apply_law
+        # CRITICAL: Only return a wrapper if the law actually exists!
+        # This prevents hasattr() from being tricked by non-existent attributes like .data
+        if self.manifold and hasattr(self.manifold, 'laws') and name in self.manifold.laws:
             def law_wrapper(*args, **kwargs):
                 return self.manifold.apply_law(name, self, *args, **kwargs)
             return law_wrapper
-        except AttributeError:
-            raise AttributeError(f"'Axiom' object has no attribute '{name}' and no such Law in {self.manifold.name}")
+            
+        raise AttributeError(f"'Axiom' object has no attribute '{name}' and no such Law in {self.manifold.name if self.manifold else 'None'}")
 
     def __add__(self, other):
         """Operator overloading delegating to the Manifold's 'add' law."""
