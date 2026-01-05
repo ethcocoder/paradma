@@ -18,6 +18,12 @@ class Axiom:
         self.is_pinned = metadata.get("pinned", False) # Critical data protection
         self.entanglements: t.List['Axiom'] = []
 
+    def __len__(self):
+        """Delegate length to the underlying value."""
+        if hasattr(self._value, '__len__'):
+            return len(self._value)
+        raise TypeError(f"Axiom value of type {type(self._value)} has no len()")
+
     def __getattr__(self, name: str):
         """
         'Law Stealing': If a method isn't found on the Axiom, 
