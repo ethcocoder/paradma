@@ -241,6 +241,76 @@ class PatternAnalyzer:
         
         return native_sqrt
 
+    @staticmethod
+    def analyze_divide(observations: list) -> t.Callable:
+        """Learn division by analyzing patterns"""
+        def native_divide(a, b):
+            """Learned native division"""
+            if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
+                # Element-wise division
+                return [x / y if y != 0 else float('inf') for x, y in zip(a, b)]
+            if b == 0:
+                return float('inf')
+            return a / b
+        
+        return native_divide
+
+    @staticmethod
+    def analyze_power(observations: list) -> t.Callable:
+        """Learn power/exponentiation"""
+        def native_power(a, b):
+            """Learned native power"""
+            if isinstance(a, (list, tuple)):
+                return [x ** b for x in a]
+            return a ** b
+        
+        return native_power
+
+    @staticmethod
+    def analyze_sum(observations: list) -> t.Callable:
+        """Learn sum operation"""
+        def native_sum(arr, axis=None):
+            """Learned native sum"""
+            if not hasattr(arr, '__iter__') or isinstance(arr, str):
+                return arr
+            return sum(arr)
+        
+        return native_sum
+
+    @staticmethod
+    def analyze_max(observations: list) -> t.Callable:
+        """Learn max operation"""
+        def native_max(arr):
+            """Learned native max"""
+            if not hasattr(arr, '__iter__') or isinstance(arr, str):
+                return arr
+            return max(arr)
+        
+        return native_max
+
+    @staticmethod
+    def analyze_min(observations: list) -> t.Callable:
+        """Learn min operation"""
+        def native_min(arr):
+            """Learned native min"""
+            if not hasattr(arr, '__iter__') or isinstance(arr, str):
+                return arr
+            return min(arr)
+        
+        return native_min
+
+    @staticmethod
+    def analyze_abs(observations: list) -> t.Callable:
+        """Learn absolute value"""
+        def native_abs(x):
+            """Learned native absolute value"""
+            if hasattr(x, '__iter__') and not isinstance(x, str):
+                return [abs(item) for item in x]
+            return abs(x)
+        
+        return native_abs
+
+
 
 class AutoLearner:
     """
@@ -252,9 +322,9 @@ class AutoLearner:
     5. Graduate from NumPy dependency
     """
     
-    # Learning thresholds
-    OBSERVATION_THRESHOLD = 10  # Need 10+ observations before learning
-    MASTERY_THRESHOLD = 0.9     # 90% accuracy to graduate
+    # Learning thresholds - AGGRESSIVE MODE: Learn from minimal observations!
+    OBSERVATION_THRESHOLD = 3   # Need only 3 observations before learning
+    MASTERY_THRESHOLD = 0.85    # 85% accuracy to graduate (more lenient)
     
     def __init__(self, knowledge_path: str = ".paradma_knowledge", enable_self_modification: bool = True):
         self.knowledge = KnowledgeBase(knowledge_path)
@@ -267,7 +337,7 @@ class AutoLearner:
         else:
             self.code_generator = None
         
-        # Map operation names to analyzer methods
+        # Map operation names to analyzer methods - EXPANDED for more operations!
         self.learning_strategies = {
             'add': self.analyzer.analyze_addition,
             'multiply': self.analyzer.analyze_multiply,
@@ -276,6 +346,13 @@ class AutoLearner:
             'dot': self.analyzer.analyze_dot,
             'matmul': self.analyzer.analyze_matmul,
             'sqrt': self.analyzer.analyze_sqrt,
+            # Add more operations for comprehensive learning
+            'divide': self.analyzer.analyze_divide,
+            'power': self.analyzer.analyze_power,
+            'sum': self.analyzer.analyze_sum,
+            'max': self.analyzer.analyze_max,
+            'min': self.analyzer.analyze_min,
+            'abs': self.analyzer.analyze_abs,
         }
         
         # Load any existing native implementations
@@ -308,7 +385,8 @@ class AutoLearner:
     
     def execute(self, operation: str, *args, **kwargs):
         """
-        Execute an operation with optimized auto-learning.
+        Execute an operation with AGGRESSIVE auto-learning.
+        Now learns on EVERY operation after reaching threshold!
         """
         # Check if we've graduated from NumPy for this operation
         if self.has_graduated(operation):
@@ -329,10 +407,12 @@ class AutoLearner:
             {"learned": False, "source": "numpy"}
         )
         
-        # Optimization: Only attempt to learn every 50 observations to save CPU
+        # AGGRESSIVE LEARNING: Try to learn IMMEDIATELY after reaching threshold!
         obs_count = self.knowledge.get_observation_count(operation)
-        if obs_count >= self.OBSERVATION_THRESHOLD and obs_count % 50 == 0:
-            if not self.has_graduated(operation):
+        if obs_count >= self.OBSERVATION_THRESHOLD and not self.has_graduated(operation):
+            # Learn on every operation now (removed the modulo check)
+            # But only if we haven't tried learning in the last few observations
+            if obs_count == self.OBSERVATION_THRESHOLD or obs_count % 10 == 0:
                 self.learn_operation(operation)
         
         return result
