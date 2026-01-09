@@ -131,7 +131,7 @@ class LearningManifold(Manifold):
     # Learning-Enabled Statistical Operations
     # ============================================
     
-    def _learning_mean(self, arr):
+    def _learning_mean(self, arr, axis=None):
         """Mean/Average with auto-learning"""
         self._track_call("mean")
         values = self._extract_values(arr)[0]
@@ -140,7 +140,13 @@ class LearningManifold(Manifold):
         if not isinstance(values, np.ndarray):
             values = np.array(values)
         
-        result = self.autolearner.execute("mean", values)
+        try:
+            # Try passing axis to autolearner
+            result = self.autolearner.execute("mean", values, axis=axis)
+        except:
+            # Fallback to direct numpy mean with axis
+            result = np.mean(values, axis=axis)
+            
         return Axiom(result, manifold=self)
     
     def _learning_median(self, arr):
