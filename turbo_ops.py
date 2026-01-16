@@ -1,16 +1,16 @@
 import numpy as np
-from numba import njit, prange
+from numba import njit
 
-@njit(cache=True, fastmath=True, parallel=True)
+@njit(cache=True, fastmath=True)
 def matmul_turbo(A, B):
-    """Turbo-charged Matrix Multiplication for Paradma"""
+    """Turbo-charged Matrix Multiplication for Paradma (Stable Mode)"""
     if A.ndim == 2 and B.ndim == 1:
         # Matrix-Vector (common for similarity search)
         M, K = A.shape
         K2 = B.shape[0]
         assert K == K2
         C = np.zeros(M, dtype=A.dtype)
-        for i in prange(M):
+        for i in range(M):
             val = 0.0
             for k in range(K):
                 val += A[i, k] * B[k]
@@ -21,7 +21,7 @@ def matmul_turbo(A, B):
         K2, N = B.shape
         assert K == K2
         C = np.zeros((M, N), dtype=A.dtype)
-        for i in prange(M):
+        for i in range(M):
             for k in range(K):
                 a_ik = A[i, k]
                 for j in range(N):
@@ -29,9 +29,9 @@ def matmul_turbo(A, B):
         return C
     return A @ B # Fallback
 
-@njit(cache=True, fastmath=True, parallel=True)
+@njit(cache=True, fastmath=True)
 def cosine_similarity_turbo(vectors, query):
-    """Batch Cosine Similarity for Parag RAG"""
+    """Batch Cosine Similarity for Parag RAG (Stable Mode)"""
     M, K = vectors.shape
     K2 = query.shape[0]
     assert K == K2
@@ -44,7 +44,7 @@ def cosine_similarity_turbo(vectors, query):
     
     results = np.zeros(M, dtype=vectors.dtype)
     
-    for i in prange(M):
+    for i in range(M):
         dot = 0.0
         vec_norm = 0.0
         for k in range(K):
@@ -60,17 +60,17 @@ def cosine_similarity_turbo(vectors, query):
             
     return results
 
-@njit(cache=True, fastmath=True, parallel=True)
+@njit(cache=True, fastmath=True)
 def dot_turbo(a, b):
     """High-speed dot product"""
     return np.dot(a, b)
 
-@njit(cache=True, fastmath=True, parallel=True)
+@njit(cache=True, fastmath=True)
 def euclidean_distance_turbo(vectors, query):
-    """Batch Euclidean Distance for Paradma"""
+    """Batch Euclidean Distance for Paradma (Stable Mode)"""
     M, K = vectors.shape
     results = np.zeros(M, dtype=vectors.dtype)
-    for i in prange(M):
+    for i in range(M):
         dist = 0.0
         for k in range(K):
             diff = vectors[i, k] - query[k]

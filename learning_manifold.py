@@ -63,18 +63,13 @@ class LearningManifold(Manifold):
     
     def _try_turbo(self, operation: str, *args):
         """Try to use Numba-accelerated turbo ops if available"""
-        print(f"   [DEBUG] _try_turbo: Attempting Turbo for {operation}...")
         try:
             from .turbo_ops import matmul_turbo, dot_turbo
             if operation == "matmul":
-                print(f"   [DEBUG] _try_turbo: Calling matmul_turbo with shapes {args[0].shape} and {args[1].shape}")
-                res = matmul_turbo(args[0], args[1])
-                print(f"   [DEBUG] _try_turbo: matmul_turbo finished.")
-                return res
+                return matmul_turbo(args[0], args[1])
             elif operation == "dot":
                 return dot_turbo(args[0], args[1])
-        except Exception as e:
-            print(f"   [DEBUG] _try_turbo: Turbo failed: {e}")
+        except Exception:
             pass
         return None
     
@@ -208,21 +203,16 @@ class LearningManifold(Manifold):
     def _learning_matmul(self, a, b):
         """Matrix multiplication with auto-learning and turbo acceleration"""
         self._track_call("matmul")
-        print(f"   [DEBUG] Entering _learning_matmul")
         val_a, val_b = self._extract_values(a, b)
-        print(f"   [DEBUG] Extracted values for matmul. Type A: {type(val_a)}, Type B: {type(val_b)}")
         
         # Try turbo path
-        print(f"   [Turbo-Kernel] Executing Numba MatMul...")
         turbo_res = self._try_turbo("matmul", val_a, val_b)
         if turbo_res is not None:
-            print(f"   [DEBUG] Matmul Turbo path SUCCESS")
             if hasattr(a, 'data') or hasattr(b, 'data'):
                 from modules.framework.tensor import Tensor
                 return Tensor(turbo_res)
             return Axiom(turbo_res, manifold=self)
             
-        print(f"   [DEBUG] Matmul Turbo path SKIPPED/FAILED. Using AutoLearner.")
         result = self.autolearner.execute("matmul", val_a, val_b)
         
         # If input was a framework Tensor, return a framework Tensor
