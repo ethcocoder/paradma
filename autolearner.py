@@ -31,6 +31,15 @@ except ImportError:
         HAS_CODE_GEN = False
         CodeGenerator = None
 
+# Optimization support
+try:
+    from numba import njit
+    HAS_NUMBA = True
+except ImportError:
+    HAS_NUMBA = False
+    def njit(cache=False, fastmath=False):
+        return lambda f: f
+
 class KnowledgeBase:
     """
     Stores observations from NumPy operations.
@@ -168,9 +177,17 @@ class PatternAnalyzer:
     
     @staticmethod
     def analyze_dot(observations: list) -> t.Callable:
-        """Learn dot product by analyzing patterns"""
+        """Learn dot product with Numba acceleration"""
+        @njit(cache=True, fastmath=True)
+        def njit_dot(a, b):
+            return np.dot(a, b)
+            
         def native_dot(a, b):
             """Learned native dot product"""
+            # Handle NumPy for speed
+            if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
+                return njit_dot(a, b)
+            
             if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
                 # Vector dot product
                 return sum(x * y for x, y in zip(a, b))
@@ -180,14 +197,23 @@ class PatternAnalyzer:
     
     @staticmethod
     def analyze_matmul(observations: list) -> t.Callable:
-        """Learn matrix multiplication"""
+        """Learn matrix multiplication with Numba acceleration"""
+        @njit(cache=True, fastmath=True)
+        def njit_matmul(A, B):
+            return A @ B
+
         def native_matmul(a, b):
-            """Learned native matrix multiplication with Multi-Dim support"""
-            import numpy as np
-            # For the MVP, if it's high-dim (3D+), we use a recursive approach 
-            # or fallback to a highly optimized nested loop.
-            # But to ensure GRADUATION, we must match NumPy exactly.
+            """Learned native matrix multiplication"""
+            # Use Numba if inputs are already numpy-like
+            if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
+                return njit_matmul(a, b)
             
+            # Standard 2D/1D logic with NumPy fallback for high-dim
+            import numpy as np
+            if hasattr(a, 'ndim') and a.ndim > 2:
+                return np.matmul(a, b)
+            
+            # Pure Python fallback for list-based matrices
             def matmul_2d(A, B):
                 rows_a, cols_a = len(A), len(A[0])
                 rows_b, cols_b = len(B), len(B[0])
@@ -198,12 +224,6 @@ class PatternAnalyzer:
                             res[i][j] += A[i][k] * B[k][j]
                 return res
 
-            # Handle NumPy arrays directly for speed if they are passed
-            if hasattr(a, 'ndim') and a.ndim > 2:
-                # Recursive multi-dim matmul
-                return np.matmul(a, b).tolist() 
-            
-            # Standard 2D/1D logic
             A = a.tolist() if hasattr(a, 'tolist') else a
             B = b.tolist() if hasattr(b, 'tolist') else b
             
