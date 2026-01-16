@@ -60,6 +60,9 @@ class KnowledgeBase:
             "timestamp": self._get_time()
         }
         self.observations[operation].append(observation)
+        # Prevent memory explosion: Keep only the last 1000 observations
+        if len(self.observations[operation]) > 1000:
+            self.observations[operation].pop(0)
         
     def get_observation_count(self, operation: str) -> int:
         """How many times we've observed this operation"""
