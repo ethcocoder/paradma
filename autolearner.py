@@ -518,6 +518,78 @@ class PatternAnalyzer:
             return sorted_arr[mid]
         return native_median
 
+    # ==================================================================
+    # MULTI-DIMENSIONAL & TENSOR OPERATIONS
+    # ==================================================================
+
+    @staticmethod
+    def analyze_argmax(observations: list) -> t.Callable:
+        """Learn argmax operation"""
+        def native_argmax(arr, axis=None):
+            """Learned native argmax"""
+            import numpy as np
+            if not hasattr(arr, '__iter__'): return 0
+            return np.argmax(arr, axis=axis)
+        return native_argmax
+
+    @staticmethod
+    def analyze_argmin(observations: list) -> t.Callable:
+        """Learn argmin operation"""
+        def native_argmin(arr, axis=None):
+            """Learned native argmin"""
+            import numpy as np
+            if not hasattr(arr, '__iter__'): return 0
+            return np.argmin(arr, axis=axis)
+        return native_argmin
+
+    @staticmethod
+    def analyze_cumsum(observations: list) -> t.Callable:
+        """Learn cumulative sum"""
+        def native_cumsum(arr, axis=None):
+            """Learned native cumsum"""
+            import numpy as np
+            return np.cumsum(arr, axis=axis)
+        return native_cumsum
+
+    @staticmethod
+    def analyze_cumprod(observations: list) -> t.Callable:
+        """Learn cumulative product"""
+        def native_cumprod(arr, axis=None):
+            """Learned native cumprod"""
+            import numpy as np
+            return np.cumprod(arr, axis=axis)
+        return native_cumprod
+
+    @staticmethod
+    def analyze_concatenate(observations: list) -> t.Callable:
+        """Learn concatenation"""
+        def native_concatenate(tensors, axis=0):
+            """Learned native concatenate"""
+            import numpy as np
+            return np.concatenate(tensors, axis=axis)
+        return native_concatenate
+
+    @staticmethod
+    def analyze_reshape(observations: list) -> t.Callable:
+        """Learn reshape"""
+        def native_reshape(arr, newshape):
+            """Learned native reshape"""
+            import numpy as np
+            return np.reshape(arr, newshape)
+        return native_reshape
+
+    @staticmethod
+    def analyze_transpose(observations: list) -> t.Callable:
+        """Learn transpose"""
+        def native_transpose(arr, axes=None):
+            """Learned native transpose"""
+            import numpy as np
+            return np.transpose(arr, axes=axes)
+        return native_transpose
+
+
+
+
 
 
 class AutoLearner:
@@ -580,7 +652,16 @@ class AutoLearner:
             'std': self.analyzer.analyze_std,
             'var': self.analyzer.analyze_var,
             'median': self.analyzer.analyze_median,
+            # Multi-dimensional/Tensor
+            'argmax': self.analyzer.analyze_argmax,
+            'argmin': self.analyzer.analyze_argmin,
+            'cumsum': self.analyzer.analyze_cumsum,
+            'cumprod': self.analyzer.analyze_cumprod,
+            'concatenate': self.analyzer.analyze_concatenate,
+            'reshape': self.analyzer.analyze_reshape,
+            'transpose': self.analyzer.analyze_transpose,
         }
+
         
         # Load any existing native implementations
         if self.enable_self_modification:
