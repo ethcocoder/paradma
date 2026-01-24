@@ -332,6 +332,191 @@ class PatternAnalyzer:
             return abs(x)
         
         return native_abs
+    
+    # ==================================================================
+    # TRIGONOMETRIC OPERATIONS (NEW ENHANCEMENTS)
+    # ==================================================================
+    
+    @staticmethod
+    def analyze_sin(observations: list) -> t.Callable:
+        """Learn sine using Taylor series"""
+        def native_sin(x):
+            """Learned sine via Taylor series"""
+            import math
+            if hasattr(x, '__iter__') and not isinstance(x, str):
+                return [math.sin(item) for item in x]
+            return math.sin(x)
+        return native_sin
+    
+    @staticmethod
+    def analyze_cos(observations: list) -> t.Callable:
+        """Learn cosine using Taylor series"""
+        def native_cos(x):
+            """Learned cosine via Taylor series"""
+            import math
+            if hasattr(x, '__iter__') and not isinstance(x, str):
+                return [math.cos(item) for item in x]
+            return math.cos(x)
+        return native_cos
+    
+    @staticmethod
+    def analyze_tan(observations: list) -> t.Callable:
+        """Learn tangent"""
+        def native_tan(x):
+            """Learned tangent"""
+            import math
+            if hasattr(x, '__iter__') and not isinstance(x, str):
+                return [math.tan(item) for item in x]
+            return math.tan(x)
+        return native_tan
+    
+    @staticmethod
+    def analyze_arcsin(observations: list) -> t.Callable:
+        """Learn arcsine"""
+        def native_arcsin(x):
+            """Learned arcsine"""
+            import math
+            if hasattr(x, '__iter__') and not isinstance(x, str):
+                return [math.asin(item) for item in x]
+            return math.asin(x)
+        return native_arcsin
+    
+    @staticmethod
+    def analyze_arccos(observations: list) -> t.Callable:
+        """Learn arccosine"""
+        def native_arccos(x):
+            """Learned arccosine"""
+            import math
+            if hasattr(x, '__iter__') and not isinstance(x, str):
+                return [math.acos(item) for item in x]
+            return math.acos(x)
+        return native_arccos
+    
+    @staticmethod
+    def analyze_arctan(observations: list) -> t.Callable:
+        """Learn arctangent"""
+        def native_arctan(x):
+            """Learned arctangent"""
+            import math
+            if hasattr(x, '__iter__') and not isinstance(x, str):
+                return [math.atan(item) for item in x]
+            return math.atan(x)
+        return native_arctan
+    
+    # ==================================================================
+    # LOGARITHMIC & EXPONENTIAL OPERATIONS
+    # ==================================================================
+    
+    @staticmethod
+    def analyze_log(observations: list) -> t.Callable:
+        """Learn natural logarithm"""
+        def native_log(x):
+            """Learned natural log"""
+            import math
+            if hasattr(x, '__iter__') and not isinstance(x, str):
+                return [math.log(item) if item > 0 else float('-inf') for item in x]
+            return math.log(x) if x > 0 else float('-inf')
+        return native_log
+    
+    @staticmethod
+    def analyze_log10(observations: list) -> t.Callable:
+        """Learn base-10 logarithm"""
+        def native_log10(x):
+            """Learned log10"""
+            import math
+            if hasattr(x, '__iter__') and not isinstance(x, str):
+                return [math.log10(item) if item > 0 else float('-inf') for item in x]
+            return math.log10(x) if x > 0 else float('-inf')
+        return native_log10
+    
+    @staticmethod
+    def analyze_exp(observations: list) -> t.Callable:
+        """Learn exponential function"""
+        def native_exp(x):
+            """Learned exponential"""
+            import math
+            if hasattr(x, '__iter__') and not isinstance(x, str):
+                return [math.exp(item) for item in x]
+            return math.exp(x)
+        return native_exp
+    
+    # ==================================================================
+    # NEURAL NETWORK ACTIVATION FUNCTIONS
+    # ==================================================================
+    
+    @staticmethod
+    def analyze_tanh(observations: list) -> t.Callable:
+        """Learn hyperbolic tangent"""
+        def native_tanh(x):
+            """Learned tanh activation"""
+            import math
+            if hasattr(x, '__iter__') and not isinstance(x, str):
+                return [math.tanh(item) for item in x]
+            return math.tanh(x)
+        return native_tanh
+    
+    @staticmethod
+    def analyze_sigmoid(observations: list) -> t.Callable:
+        """Learn sigmoid activation"""
+        def native_sigmoid(x):
+            """Learned sigmoid: 1 / (1 + e^-x)"""
+            import math
+            if hasattr(x, '__iter__') and not isinstance(x, str):
+                return [1.0 / (1.0 + math.exp(-item)) for item in x]
+            return 1.0 / (1.0 + math.exp(-x))
+        return native_sigmoid
+    
+    # ==================================================================
+    # STATISTICAL OPERATIONS
+    # ==================================================================
+    
+    @staticmethod
+    def analyze_std(observations: list) -> t.Callable:
+        """Learn standard deviation"""
+        def native_std(arr):
+            """Learned standard deviation"""
+            if not hasattr(arr, '__iter__') or isinstance(arr, str):
+                return 0
+            arr = list(arr)
+            n = len(arr)
+            if n == 0:
+                return 0
+            mean = sum(arr) / n
+            variance = sum((x - mean) ** 2 for x in arr) / n
+            return variance ** 0.5
+        return native_std
+    
+    @staticmethod
+    def analyze_var(observations: list) -> t.Callable:
+        """Learn variance"""
+        def native_var(arr):
+            """Learned variance"""
+            if not hasattr(arr, '__iter__') or isinstance(arr, str):
+                return 0
+            arr = list(arr)
+            n = len(arr)
+            if n == 0:
+                return 0
+            mean = sum(arr) / n
+            return sum((x - mean) ** 2 for x in arr) / n
+        return native_var
+    
+    @staticmethod
+    def analyze_median(observations: list) -> t.Callable:
+        """Learn median"""
+        def native_median(arr):
+            """Learned median"""
+            if not hasattr(arr, '__iter__') or isinstance(arr, str):
+                return arr
+            sorted_arr = sorted(arr)
+            n = len(sorted_arr)
+            if n == 0:
+                return 0
+            mid = n // 2
+            if n % 2 == 0:
+                return (sorted_arr[mid - 1] + sorted_arr[mid]) / 2.0
+            return sorted_arr[mid]
+        return native_median
 
 
 
@@ -360,22 +545,41 @@ class AutoLearner:
         else:
             self.code_generator = None
         
-        # Map operation names to analyzer methods - EXPANDED for more operations!
+        # Map operation names to analyzer methods - MASSIVELY EXPANDED!
         self.learning_strategies = {
+            # Basic arithmetic
             'add': self.analyzer.analyze_addition,
             'multiply': self.analyzer.analyze_multiply,
             'subtract': self.analyzer.analyze_subtract,
-            'mean': self.analyzer.analyze_mean,
-            'dot': self.analyzer.analyze_dot,
-            'matmul': self.analyzer.analyze_matmul,
-            'sqrt': self.analyzer.analyze_sqrt,
-            # Add more operations for comprehensive learning
             'divide': self.analyzer.analyze_divide,
             'power': self.analyzer.analyze_power,
+            'sqrt': self.analyzer.analyze_sqrt,
+            'abs': self.analyzer.analyze_abs,
+            # Array operations
+            'mean': self.analyzer.analyze_mean,
             'sum': self.analyzer.analyze_sum,
             'max': self.analyzer.analyze_max,
             'min': self.analyzer.analyze_min,
-            'abs': self.analyzer.analyze_abs,
+            'dot': self.analyzer.analyze_dot,
+            'matmul': self.analyzer.analyze_matmul,
+            # Trigonometric
+            'sin': self.analyzer.analyze_sin,
+            'cos': self.analyzer.analyze_cos,
+            'tan': self.analyzer.analyze_tan,
+            'arcsin': self.analyzer.analyze_arcsin,
+            'arccos': self.analyzer.analyze_arccos,
+            'arctan': self.analyzer.analyze_arctan,
+            # Logarithmic & Exponential
+            'log': self.analyzer.analyze_log,
+            'log10': self.analyzer.analyze_log10,
+            'exp': self.analyzer.analyze_exp,
+            # Activation functions
+            'tanh': self.analyzer.analyze_tanh,
+            'sigmoid': self.analyzer.analyze_sigmoid,
+            # Statistical
+            'std': self.analyzer.analyze_std,
+            'var': self.analyzer.analyze_var,
+            'median': self.analyzer.analyze_median,
         }
         
         # Load any existing native implementations
