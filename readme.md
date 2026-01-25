@@ -91,4 +91,4 @@ Based on current architectural validation and benchmark results:
 
 ## 📜 License
 MIT License.
-##powerd by ethco coders
+powerd by ethco coders
